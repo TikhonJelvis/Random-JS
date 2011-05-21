@@ -15,7 +15,7 @@ function eventify(object, options) {
     var marked = options.marked || false,
         checkNames = (options.names === []),
         names = {};// A set of names to conisder.
-    
+
     for (var i = 0; i < options.names.length; i++) {
         names[options.names[i]] = true;
     }
@@ -39,6 +39,8 @@ function eventify(object, options) {
      * be eventified (e.g. check(methodName) == false), then nothing happens.
      */
     function eventifyMethod(method) {
+        var func = object[method];
+        
         if (check(method)) {
             object[method] = function () {
                 fire(new Event(method, arguments));
@@ -46,6 +48,8 @@ function eventify(object, options) {
             };
         }
     }
+
+    object._eventifyMethod = eventifyMethod;
 
     /* Fires the given event, calling all observers with it as the sole argument.
      * This checks that all the observers are functions before trying to call
