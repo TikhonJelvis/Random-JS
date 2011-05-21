@@ -25,19 +25,25 @@ function eventify(object, options) {
     /* Returns whether the specified property is one to transform. */
     function check(property) {
         return (!checkNames || names[property]) &&
-            (!marked || !object[property]._eventify) &&
+            (!marked || object[property]._eventify) &&
             (typeof object[property] == "function");
     }
 
     // Cause all of the methods to fire off events:
     for (var method in object) {
-        with ({func : object[method]}) {
-            if (object.hasOwnProperty(method) && check(method)) {
-                object[method] = function () {
-                    fire(new Event(method, arguments));
-                    return func.apply(object, arguments);
-                };
-            }
+        eventifyMethod(method);
+    }
+
+    /* Eventifies the method with the given name, making it emit events every time
+     * it is called. If the name passed in does not correspond to a method to be
+     * be eventified (e.g. check(methodName) == false), then nothing happens.
+     */
+    function eventifyMethod(method) {
+        if (check(method)) {
+            object[method] = function () {
+                fire(new Event(method, arguments));
+                return func.apply(object, arguments);
+            };
         }
     }
 
