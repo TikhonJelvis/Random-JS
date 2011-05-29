@@ -1,4 +1,5 @@
-/* Makes the given object observable, firing off events when the object's methods
+/**
+ * Makes the given object observable, firing off events when the object's methods
  * are called. There are also some options availible for limiting which methods
  * trigger events. They can be passed in using an options object as the second
  * argument. There are two options. The names option can be an array of method
@@ -6,6 +7,14 @@
  * array will not trigger events. The marked option dictates whether to transform
  * only "marked" methods. "Marked" methods are those that have a ._eventify
  * property that is not falsy.
+ *
+ * @function
+ * @param object the object to eventify.
+ * @param [options] various options to configure eventify's behavior.
+ * @param {String[]} [options.names] an optional list of names to include. If this is
+ *  specified, only methods with those names will be eventified.
+ * @param {Boolean} [options.marked] whether to only eventify methods marked by
+ *  a ._eventify field set to true.
  */
 function eventify(object, options) {
     // Options:
