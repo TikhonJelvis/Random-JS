@@ -5,13 +5,16 @@
  *
  * @constructor
  * @requires jQuery
- * @param {Function} runner the function called on the inputs to get the outputs.
+ * @param {Function} runner the function called on all the inputs. This function is passed both
+ *  the inputs and a reference to the originating Cli.
  */
 function Cli(runner) {
+    var that = this;
+    
     // HTML elements:
     var top = $("<div>"),
-        input = $("<input>"),
-        output = $("<div>");
+        output = $("<div>"),
+        input = $("<input>");
 
     // Command history:
     var history = [],
@@ -31,7 +34,7 @@ function Cli(runner) {
      */
     this.input = function (text) {
         history.push(text);
-        this.output(runner(input));
+        runner(text, that);
     };
 
     /**
@@ -40,36 +43,44 @@ function Cli(runner) {
      * @function
      * @memberOf Cli
      */
-    this.send = send;
+    this.send = function send() {
+        var value = that.getInput();
+        that.output(prompt + value, "in");
+        that.input(value);
 
-    /**
-     * Sends the text currently in the input to the command line.
-     *
-     * @function
-     */
-    function send() {
-        var value = this.getInput();
-        this.output(prompt + value);
-        this.input(value);
-        history.push(value);
-        this.setInput("");
-    }
+        if (commandsShifted) {
+            history.shift();
+            commandsShifted = false;
+        }
+        
+        history.unshift(value);
+        currentCommand = -1;
+        that.setInput("");
+    };
 
     /**
      * Outputs the given text to the command line.
      *
      * @function
      * @memberOf Cli
-     * @param {String} text the text to output.
+     * @param {String} text the text to output. If this is falsey, nothing will happen.
      * @param {String} [type] the type of output this is. This corresponds to a
      *  css class that determines how the line will be displayed.
      */
     this.output = function (text, type) {
-        var line = $("<div>");
-        if (type) {
-            line.addClass(type);
+        if (text) {
+            text = text.toString();
+            
+            var line = $("<div>");
+            
+            if (type) {
+                line.addClass(type);
+            }
+            line.addClass("line");
+            
+            line.append(text);
+            output.prepend(line);
         }
-        line.append(text);
     };
 
     /**
@@ -95,6 +106,17 @@ function Cli(runner) {
     };
 
     /**
+     * Returns the html element that contains the cli interface.
+     *
+     * @function
+     * @memberOf Cli
+     * @return {jQuery} the jQuery-extended div that contains everything.
+     */
+    this.getElement = function () {
+        return top;
+    };
+
+    /**
      * Tries to move the command history back one and returns the resulting
      * command. If the history is empty, returns null and does not change
      * anything.
@@ -107,7 +129,7 @@ function Cli(runner) {
         if (history.length > 0) {
             if (currentCommand === -1) {
                 currentCommand = 1;
-                history.unshift(this.getInput());
+                history.unshift(that.getInput());
             } else if (currentCommand >= history.length) {
                 currentCommand = 0;
             }
@@ -132,7 +154,7 @@ function Cli(runner) {
     function nextCommand() {
         if (currentCommand > 1) {
             currentCommand--;
-            return sentCommands[currentCommand - 1];
+            return history[currentCommand - 1];
         } else {
             return null;
         }
@@ -141,7 +163,7 @@ function Cli(runner) {
     $("body").keydown(function (event) {
         switch (event.keyCode) {
         case 13 :// Enter
-            send();
+            that.send();
             break;
         case 38 :// Up
             input.val(previousCommand());
@@ -157,6 +179,6 @@ function Cli(runner) {
         return;
     });
 
-    top.append(output);
     top.append(input);
+    top.append(output);
 };
