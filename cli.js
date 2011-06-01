@@ -1,8 +1,11 @@
 // A command-line interface emulator.
 
+// Requires jQuery
+
 /**
  * Creates a new command-line interface.
  *
+ * @requires jQuery
  * @constructor
  * @requires jQuery
  * @param {Function} runner the function called on all the inputs. This function is passed both
